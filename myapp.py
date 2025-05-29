@@ -1,7 +1,12 @@
 from flask import (
-  Flask, request, jsonify)
+  Flask, request, jsonify, render_template)
 from settings import db, app
 from models import User
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 
 @app.route('/user', methods=['GET'])

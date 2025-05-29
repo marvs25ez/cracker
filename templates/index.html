@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Management</title>
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      padding: 20px;
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #343a40;
+    }
+    h1, h2 {
+      color: #212529;
+      font-weight: 600;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: box-shadow 0.3s ease;
+    }
+    .section:hover {
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    #output {
+      white-space: pre-wrap;
+      background: #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 15px;
+      grid-column: 1 / -1;
+      font-family: Consolas, monospace;
+    }
+    button {
+      border-radius: 5px;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      filter: brightness(0.9);
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #495057;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #80bdff;
+      outline: none;
+      box-shadow: 0 0 5px rgba(0,123,255,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>User Management</h1>
+
+    <div class="section">
+      <h2>Get All Users</h2>
+      <button class="btn btn-primary" onclick="getAllUsers()">Fetch All Users</button>
+    </div>
+
+    <div class="section">
+      <h2>Get User by ID</h2>
+      <input type="text" id="getUserId" placeholder="User ID" />
+      <button class="btn btn-primary" onclick="getUserById()">Fetch User</button>
+    </div>
+
+    <div class="section">
+      <h2>Create User</h2>
+      <form id="createUserForm" onsubmit="createUser(event)">
+        <label>Name:</label>
+        <input type="text" id="createName" required />
+        <label>Email:</label>
+        <input type="email" id="createEmail" required />
+        <label>Password:</label>
+        <input type="password" id="createPassword" required />
+        <label>Mobile:</label>
+        <input type="text" id="createMobile" required />
+        <button class="btn btn-success mt-2" type="submit">Create User</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>Update User</h2>
+      <form id="updateUserForm" onsubmit="updateUser(event)">
+        <label>User ID:</label>
+        <input type="text" id="updateUserId" required />
+        <label>Name:</label>
+        <input type="text" id="updateName" />
+        <label>Email:</label>
+        <input type="email" id="updateEmail" />
+        <label>Password:</label>
+        <input type="password" id="updatePassword" />
+        <label>Mobile:</label>
+        <input type="text" id="updateMobile" />
+        <button class="btn btn-warning mt-2" type="submit">Update User</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>Delete User</h2>
+      <input type="text" id="deleteUserId" placeholder="User ID" />
+      <button class="btn btn-danger mt-2" onclick="deleteUser()">Delete User</button>
+    </div>
+
+    <h2>Output</h2>
+    <div id="output"></div>
+  </div>
+
+  <script>
+    const output = document.getElementById('output');
+
+    function displayResult(data) {
+      if (data.data && Array.isArray(data.data)) {
+        // If data contains a list of users, display in table
+        let html = '<table class="table table-striped table-bordered"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Password</th></tr></thead><tbody>';
+        data.data.forEach(user => {
+          html += `<tr>
+            <td>${user[0]}</td>
+            <td>${user[1]}</td>
+            <td>${user[2]}</td>
+            <td>${user[3]}</td>
+            <td>${user[4]}</td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        output.innerHTML = html;
+      } else if (data.data && Array.isArray(data.data)) {
+        // If data contains a single user object in array, display in table
+        let user = data.data;
+        let html = '<table class="table table-striped table-bordered"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Password</th></tr></thead><tbody>';
+        html += `<tr>
+          <td>${user[0]}</td>
+          <td>${user[1]}</td>
+          <td>${user[2]}</td>
+          <td>${user[3]}</td>
+          <td>${user[4]}</td>
+        </tr>`;
+        html += '</tbody></table>';
+        output.innerHTML = html;
+      } else {
+        // Otherwise display as JSON text
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    }
+
+    async function getAllUsers() {
+      const res = await fetch('/user');
+      const data = await res.json();
+      displayResult(data);
+    }
+
+    async function getUserById() {
+      const id = document.getElementById('getUserId').value;
+      if (!id) {
+        alert('Please enter a user ID');
+        return;
+      }
+      const res = await fetch('/user/' + id);
+      const data = await res.json();
+      displayResult(data);
+    }
+
+    async function createUser(event) {
+      event.preventDefault();
+      const name = document.getElementById('createName').value;
+      const email = document.getElementById('createEmail').value;
+      const password = document.getElementById('createPassword').value;
+      const mobile = document.getElementById('createMobile').value;
+
+      const formData = new URLSearchParams();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('pwd', password);
+      formData.append('mobile', mobile);
+
+      const res = await fetch('/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+      const data = await res.json();
+      displayResult(data);
+      document.getElementById('createUserForm').reset();
+    }
+
+    async function updateUser(event) {
+      event.preventDefault();
+      const id = document.getElementById('updateUserId').value;
+      if (!id) {
+        alert('Please enter a user ID');
+        return;
+      }
+      const formData = new URLSearchParams();
+      const name = document.getElementById('updateName').value;
+      const email = document.getElementById('updateEmail').value;
+      const password = document.getElementById('updatePassword').value;
+      const mobile = document.getElementById('updateMobile').value;
+
+      if (name) formData.append('name', name);
+      if (email) formData.append('email', email);
+      if (password) formData.append('pwd', password);
+      if (mobile) formData.append('mobile', mobile);
+
+      const res = await fetch('/user/' + id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+      const data = await res.json();
+      displayResult(data);
+      document.getElementById('updateUserForm').reset();
+    }
+
+    async function deleteUser() {
+      const id = document.getElementById('deleteUserId').value;
+      if (!id) {
+        alert('Please enter a user ID');
+        return;
+      }
+      const res = await fetch('/user/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      displayResult(data);
+      document.getElementById('deleteUserId').value = '';
+    }
+  </script>
+</body>
+</html>
